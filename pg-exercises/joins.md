@@ -85,57 +85,102 @@ exercises-# order by starttime;
 ```
 
 ### Question
-How can you produce a list of facilities that charge a fee to members?
-
+How can you output a list of all members, including the individual who recommended them (if any)? Ensure that results are ordered by (surname, firstname).
 
 ### Answer
 ```shell
-exercises=# select name from cd.facilities
-where membercost > 0;
-      name      
-----------------
- Tennis Court 1
- Tennis Court 2
- Massage Room 1
- Massage Room 2
- Squash Court
-(5 rows)
+exercises=# select m1.firstname as memfname, m1.surname as memsname,
+m2.firstname as recfname, m2.surname as recsname
+from cd.members m1 left join cd.members m2 
+on m1.recommendedby = m2.memid
+order by memsname, memfname;
+
+ memfname  |     memsname      | recfname  | recsname 
+-----------+-------------------+-----------+----------
+ Florence  | Bader             | Ponder    | Stibbons
+ Anne      | Baker             | Ponder    | Stibbons
+ Timothy   | Baker             | Jemima    | Farrell
+ Tim       | Boothe            | Tim       | Rownam
+ Gerald    | Butters           | Darren    | Smith
+ Joan      | Coplin            | Timothy   | Baker
+ Erica     | Crumpet           | Tracy     | Smith
+ Nancy     | Dare              | Janice    | Joplette
+ David     | Farrell           |           | 
+ Jemima    | Farrell           |           | 
+ Matthew   | Genting           | Gerald    | Butters
+ GUEST     | GUEST             |           | 
+ John      | Hunt              | Millicent | Purview
+ David     | Jones             | Janice    | Joplette
+ Douglas   | Jones             | David     | Jones
+ Janice    | Joplette          | Darren    | Smith
+ Anna      | Mackenzie         | Darren    | Smith
+ Charles   | Owen              | Darren    | Smith
+ David     | Pinker            | Jemima    | Farrell
+ Millicent | Purview           | Tracy     | Smith
+ Tim       | Rownam            |           | 
+ Henrietta | Rumney            | Matthew   | Genting
+ Ramnaresh | Sarwin            | Florence  | Bader
+ Darren    | Smith             |           | 
+ Darren    | Smith             |           | 
+ Jack      | Smith             | Darren    | Smith
+ Tracy     | Smith             |           | 
+ Ponder    | Stibbons          | Burton    | Tracy
+ Burton    | Tracy             |           | 
+ Hyacinth  | Tupperware        |           | 
+ Henry     | Worthington-Smyth | Tracy     | Smith
+(31 rows)
+
+exercises=# 
+
+
 
 ```
 
 
 ### Question
-How can you produce a list of facilities that charge a fee to members, and that fee is less than 1/50th of the monthly maintenance cost? Return the facid, facility name, member cost, and monthly maintenance of the facilities in question.
+How can you output a list of all members who have recommended another member? Ensure that there are no duplicates in the list, and that results are ordered by (surname, firstname).
 
 ### Answer
 ```shell
-exercises=# select name, membercost, monthlymaintenance from cd.facilities
-where membercost > 0 and  membercost < 0.02 * monthlymaintenance;
+exercises=# select distinct rec.firstname as firstname, rec.surname as surname
+from cd.members mems inner join cd.members rec
+on mems.recommendedby = rec.memid
+order by surname, firstname;
 
-      name      | membercost | monthlymaintenance 
-----------------+------------+--------------------
- Massage Room 1 |         35 |               3000
- Massage Room 2 |         35 |               3000
-(2 rows)
+ firstname | surname  
+-----------+----------
+ Florence  | Bader
+ Timothy   | Baker
+ Gerald    | Butters
+ Jemima    | Farrell
+ Matthew   | Genting
+ David     | Jones
+ Janice    | Joplette
+ Millicent | Purview
+ Tim       | Rownam
+ Darren    | Smith
+ Tracy     | Smith
+ Ponder    | Stibbons
+ Burton    | Tracy
+(13 rows)
+
 
 ```
 
-## Basics
-
 ### Question
-How can you produce a list of all facilities with the word 'Tennis' in their name?
+How can you produce a list of all members who have used a tennis court? Include in your output the name of the court, and the name of the member formatted as a single column. Ensure no duplicate data, and order by the member name followed by the facility name.
 
 ### Answer
 ```shell
-exercises=# select * from cd.facilities 
-where name like '%Tennis%';
- facid |      name      | membercost | guestcost | initialoutlay | monthlymaintenance 
--------+----------------+------------+-----------+---------------+--------------------
-     0 | Tennis Court 1 |          5 |        25 |         10000 |                200
-     1 | Tennis Court 2 |          5 |        25 |          8000 |                200
-     3 | Table Tennis   |          0 |         5 |           320 |                 10
-(3 rows)
+exercises=# select distinct m.firstname || ' ' || m.surname as member, f.name as facility
+from cd.members m join cd.bookings b
+on m.memid = b.memid
+join cd.facilities f on b.facid = f.facid
+where f.name like 'Tennis%'
+order by member, facility;
 
+
+## continue from here
 ```
 ### Question
 How can you retrieve the details of facilities with ID 1 and 5? Try to do it without using the OR operator.
